@@ -4,41 +4,49 @@ layout: default
 ---
 # OpenSILEX PHIS Deployment
 
-1. [Prerequisite](#1-prerequisite)  
-  * [Software](#software)  
-      + [MongoDB and Robo 3T](#mongodb-and-robo-3t)
-      + [Netbeans and JDK](#netbeans-and-jdk)
-      + [Postgresql and PostGIS](#postgresql-and-postgis)
-      + [PHP](#php)
-      + [Apache Tomcat and RDF4J](#apache-tomcat-and-rdf4j)
-      + [Apache2](#apache2)
-      + [Composer](#composer)
-      + [Git](#git)
-      + [Check install](#check-install)
-  * [Files](#files)
-      + [Web service folder](#web-service-folder)
-      + [Web application folder](#web-application-folder)
-      + [Ontology files](#ontology-files)
-      + [Database file](#database-file)
+1. [Prerequisite](#1-prerequisite)
+   * [Hardware](#hardware)  
+   * [Software](#software)  
+     + [MongoDB and Robo 3T](#mongodb-and-robo-3t)
+     + [Netbeans and JDK](#netbeans-and-jdk)
+     + [Postgresql and PostGIS](#postgresql-and-postgis)
+     + [PHP](#php)
+     + [Apache Tomcat and RDF4J](#apache-tomcat-and-rdf4j)
+     + [Apache2](#apache2)
+     + [Composer](#composer)
+     + [Git](#git)
+     + [Check install](#check-install)
+   * [Files](#files)
+     + [Web service folder](#web-service-folder)
+     + [Web application folder](#web-application-folder)
+     + [Ontology files](#ontology-files)
+     + [Database file](#database-file)
 2. [OpenSILEX PHIS Installation](#2-opensilex-phis-installation)
-  * [MongoDB Database](#mongodb-database)
-  * [PostgreSQL Database](#postgresql-database)
-  * [RDF4J ontologies](#rdf4j-ontologies)
-  * [Web service](#web-service)
-  * [Web application](#web-application)
+   * [MongoDB Database](#mongodb-database)
+   * [PostgreSQL Database](#postgresql-database)
+   * [RDF4J ontologies](#rdf4j-ontologies)
+   * [Web service](#web-service)
+   * [Web application](#web-application)
 3. [Common errors](#3-common-errors)
-  * [Problems with Netbeans](#problems-with-netbeans)
-  * [Issues with Composer](#issues-with-composer)
-  * [Errors with PostgreSQL](#errors-with-postgresql)
-  * [Errors with the web service](#errors-with-the-web-service)
-  * [Errors with the web application](#errors-with-the-web-application)
-  * [Other problems concerning the web application and the web service](#other-problems-with-the-webapp-and-the-web-service)
+   * [Problems with Netbeans](#problems-with-netbeans)
+   * [Issues with Composer](#issues-with-composer)
+   * [Errors with PostgreSQL](#errors-with-postgresql)
+   * [Errors with the web service](#errors-with-the-web-service)
+   * [Errors with the web application](#errors-with-the-web-application)
+   * [Other problems concerning the web application and the web service](#other-problems-with-the-webapp-and-the-web-service)
 
 ## Introduction
 This document explains you how to deploy OpenSILEX PHIS on your personnal computer.  
 In this document, commands are for **Ubuntu 16.04**. However, the majority of these commands are compatible with all Debian distributions which have the package manager Aptitude.
 
 ## 1. Prerequisite
+
+### Hardware
+We strongly recommend a server or virtual machines on a compute cloud with :
+- Processor: recommended 4 CPU 2.30GHz
+- Ethernet connection
+- Hard Drive: minimum 500 Go, depending on your data volume.
+- Memory (RAM): recommended 32 GB or above
 
 ### Software
 
@@ -47,41 +55,56 @@ In this document, commands are for **Ubuntu 16.04**. However, the majority of th
 ##### MongoDB
 All the information needed to install MongoDB is available at [docs.mongodb.com](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/#install-mongodb-community-edition/).
 
-The next release (v2.7) will require at least MongoDB v4.0, which can already be used for the current release (v2.6), the following links detail how to install or upgrade MongoDB for Ubuntu and Debian system:
+The new OpenSILEX release (v3.0) requires at least MongoDB v4.0, which could already be used for the previous release (v2.6). The following links describe how to install or upgrade MongoDB for Ubuntu and Debian systems:
 
-- In case of a new installation, please follow: [V2.7 - Install MongoDB 4.0](./MongoDBInstallv4.md)
+- In case of a new installation, please follow: [Install MongoDB 4.0](./MongoDBInstallv4.md)
 
-- In case of an upgrade of a previously installed MongoDB version, please follow: [V2.7 - Upgrade MongoDB from 3.4 to 4.0](./MongoDBUpgradeTov4.md)
+- In case of an upgrade of a previously installed MongoDB version, please follow: [Upgrade MongoDB from 3.4 to 4.0](./MongoDBUpgradeTov4.md)
+
+You can check your current MongoDB version with:
+
+ ```
+ mongod --version
+ ```
 
 Now you have a Mongodb service.
 
 Now MongoDB is installed.
 
-**Note**<br/>
-The path to the database can be changed in the `etc/mongod.conf` file.
-Set the owner on the MongoDB file:
+**Note 1**<br/>
+The path to the database can be changed in the _etc/mongod.conf_ file.
+
+Open the _mongod.conf_ configuration file with any text editor, for instance with gedit: `sudo gedit /etc/mongod.conf`.
+You'll see what is the path to the Mongo database (in my case it is _/var/lib/mongodb_):
+
+```
+# Where and how to store data.
+storage:
+  dbPath: /var/lib/mongodb
+```
+
+Set mongodb as owner of the MongoDB files, replacing \<dbPath> by the path displayed after _dbPath_:
+
 ```bash
-sudo chown -R mongodb:mongodb <path_to_mongo_db_file>
+sudo chown -R mongodb:mongodb <dbPath>
 ```
+
+**Note 2**<br/>
 In `/etc/mongod.conf` file, you should add line: `fork: true` after
+
 ```
-# how the process run
+# how the process runs
 processManagement:*
 ```
+
 as follows :
+
 ```
-# how the process run
+# how the process runs
 processManagement:*
   fork: true
 ```
-after
-```
-  # how the process runs
-  processManagement:*
-```
-This line is not an obligation, in default mode mongodb runs as fork (i.e. as a deamon) but I prefer force it by *fork: true* for no doubt.
 
-**Note**<br/>
 This line is not an obligation, in default mode MongoDB runs as fork (i.e. as a deamon) but it is preffered to force it by `fork: true` to be sure.
 
 Every time you change the `mongod.conf` file, you need to restart the `mongod` service:
@@ -96,7 +119,7 @@ sudo mongod --config /etc/mongod.conf
 
 ##### Robo 3T
 
-Download Robomongo [here](https://robomongo.org/download).
+Download Robo 3T at [robomongo.org](https://robomongo.org/download).
 
 Extract the downloaded archive (replace `<version>` with your version of Robot3t):
 ```bash  
@@ -124,6 +147,11 @@ In a terminal, run these commands:
  sudo apt-get install postgresql-9.5-postgis-2.2
 ```
 
+Locate the PostgreSQL client with:
+```{bash}
+which psql
+```
+
 ##### PostgreSQL configuration
 
 The configuration files are in the `etc/postgresql/9.5/main` folder.  
@@ -140,27 +168,31 @@ sudo systemctl restart postgresql
 
 #### Netbeans and JDK
 
-
 ##### Jdk
+You can check if Java Development Kit has already been installed (and with which version) from a terminal:
+```{bash}
+java -version
+```
+
 If JDK is already installed you can go to the next section, [Netbeans](#netbeans).
 
 Otherwise, download the JDK 8 sources (e.g. `tar.gz` archive) at [oracle.com](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
 
 Create a JDK folder wherever you want. For example:
-```bash
+```{bash}
 mkdir ~/jdk
 ```
 
 In the created folder, extract the archive with this command:
-```bash
+```{bash}
 tar -xvf ~/Downloads/jdk-X.X.X_linux-x64_bin.tar.gz ~/jdk/
 ```
 
-When the installation is done, make sure that the value of the property `netbeans_jdkhome` of the file `~/netbeans-X.X/etc/netbeans.conf` is `"/usr/lib/jvm/java-8-openjdk-amd64"`
+Once the installation has been completed, make sure that the value of the property `netbeans_jdkhome` of the file `~/netbeans-X.X/etc/netbeans.conf` is `"/usr/lib/jvm/java-8-openjdk-amd64"`.
 
 ##### Netbeans
-
-Download the full version of Netbeans at [netbeans.org](https://netbeans.org/downloads/start.html?platform=linux&lang=en&option=all).
+The documentation needed to install Netbeans is available at [netbeans.org](https://netbeans.org/community/releases/82/install.html).
+Download the full version of Netbeans at [netbeans.org/downloads](https://netbeans.org/downloads/start.html?platform=linux&lang=en&option=all).
 
 Run the downloaded script:
 ```bash
@@ -168,29 +200,36 @@ sh ~/Downloads/netbeans-X.X-linux.sh
 ```
 Follow the installation steps.
 
-Check that the **PHP** and **Glassfish/JEE** modules are installed.
+Check that the **PHP** and **Glassfish/JEE** modules are installed from the Netbeans `Tools > Plugins` menu.
 
 Choose your installation folder for Netbeans (here `~/netbeans`) and select the JDK installation folder (in our case `~/jdk`).
 
-#### PHP
+You can launch Netbeans from its installation folder by executing the `netbeans` file (in the bin directory):
+```{bash}
+./bin/netbeans
+```
 
-Install PHP by running the following commands:
-```bash
+#### PHP
+Install PHP 7.0 executing the following commands:
+```{bash}
 sudo apt-get update
 sudo apt-get install php php-mbstring php-dom
 ```
+Check your PHP version from a terminal:
+```{bash}
+php --version
+```
 
-#### Apache Tomcat + RDF4J
+OpenSILEX does currently not support PHP 7.2. Developments are being made to provide this compatibility.
 
 #### Apache Tomcat and RDF4J
 
 ##### Apache Tomcat installation
-
 To have a better control on the installation of Tomcat, install Tomcat from sources files (e.g. `tar.gz` archive).  
 
 You can download Tomcat9.0 archive, core distribution, at [tomcat.apache.org](https://tomcat.apache.org/download-90.cgi).
 
-Create an installation folder for Tomcat. We advise you to create the Tomcat folder in `/home`:
+Create an installation folder for Tomcat. We advise you to create the Tomcat folder in `/home` (or /home/<username>/) :
 
 ```bash
 sudo mkdir /home/tomcat
@@ -207,10 +246,7 @@ To be consistent with the OpenSILEX PHIS documentation, we recommand you to rena
 mv apache-tomcat<version> apache-tomcat
 ```
 
-
 With this procedure, Tomcat is not recognized by Ubuntu services control (`systemctl` or `services`). So you need to execute scripts which are in Tomcat `bin` folder (e.g: `startup.sh` to run and `shutdown.sh` to stop). You also need to change rights on files.
-
-##### Apache-Tomcat configuration
 
 ##### Apache Tomcat configuration
 Tomcat configuration files are located in the `/home/tomcat/apache-tomcat/conf` folder.  
@@ -220,11 +256,13 @@ To do that edit the `tomcat-users` file:
 nano /home/tomcat/apache-tomcat/conf/tomcat-users.xml
 ```
 and add lines:
-```bash
-<role rolename="manager"/>
-<role rolename="manager-gui"/>
-<user username="tomcat-admin" password="azerty" roles="manager, manager-script, manager-gui"/>
+```{bash}
+  <role rolename="manager"/>
+  <role rolename="manager-gui"/>
+  <user username="tomcat-admin" password="azerty" roles="manager, manager-script, manager-gui"/>
 ```
+
+As stated in the file `tomcat-users.xml`, "do not forget to remove the <!.. ..> [around the role entries]".
 
 To configure port, edit `server.xml`:
 ```bash
@@ -290,9 +328,9 @@ sudo systemctl restart apache2
 #### Composer
 
 Sometimes when installing Composer from the Ubuntu package, it does not run correctly. To avoid any problem, you should install Composer from the Composer installer file via the following command line (**Curl** must be already installed):
-```bash
-sudo curl -sS https://getcomposer.org/installer
-sudo php -- --install-dir=/usr/local/bin --filename=composer
+
+```{bash}
+sudo curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
 ```
 
 Maybe you should create a symbolic link between the new version of composer in `/usr/bin` or use the complete command. e.g. php `/usr/local/bin/composer`.
@@ -355,7 +393,7 @@ Get source from GitHub, directly from the `phis-ws` development repository:
 cd ~/OpenSILEX
 git clone https://github.com/OpenSILEX/phis-ws.git
 ```
-Preferably, get the source from the last release at [phis-ws/releases](https://github.com/OpenSILEX/phis-ws/releases).
+Preferably, get the source from the last release at [phis-ws/releases](https://github.com/OpenSILEX/phis-ws/releases) (for example, use `git clone --branch 3.0 https://github.com/OpenSILEX/phis-ws.git` if you want to install the release 3.0).
 
 #### Web application folder
 
@@ -364,16 +402,16 @@ Get source from GitHub, directly from the phis-webapp development repository:
 cd ~/OpenSILEX
 git clone https://github.com/OpenSILEX/phis-webapp.git
 ```
-Preferably, get the source from the last release at [phis-webapp/releases](https://github.com/OpenSILEX/phis-webapp/releases).
+Preferably, get the source from the last release at [phis-webapp/releases](https://github.com/OpenSILEX/phis-webapp/releases) (for example, use `git clone --branch 3.0 https://github.com/OpenSILEX/phis-webapp.git` if you want to install the release 3.0).
 
 #### Ontology files
 
 Get the source from GitHub, directly from the `ontology-vocabularies` development repository:
 ```bash
-cd ~OpenSILEX
-git clone https://github.com/OpenSILEX/ontology-vocabularies
+cd ~/OpenSILEX
+git clone https://github.com/OpenSILEX/ontology-vocabularies.git
 ```
-Preferably, get the source from the last release at [ontology-vocabularies/releases](https://github.com/OpenSILEX/ontology-vocabularies/releases).
+Preferably, get the source from the last release at [ontology-vocabularies/releases](https://github.com/OpenSILEX/ontology-vocabularies/releases) (for example, use `git clone --branch 3.0 https://github.com/OpenSILEX/ontology-vocabularies.git` if you want to install the release 3.0).
 
 #### Database file
 
@@ -393,9 +431,13 @@ Run Robo 3T:
 ~/robo3t/bin/robo3t
 ```
 Create a connection:
+
 ![robo3t-connection1](img/robo3t-connexion1.png)
+
 Configure your connection:
+
 ![robo3t-connection2](img/robo3t-connexion2.png)
+
 Create your database:
 Right click on connection name -> `Create Database` -> enter a name (`phis` in this document).
 
@@ -410,10 +452,14 @@ Search `rdf4j-workbench` in the list, if isn't running, click on `Start`)
 Click on the `rdf4j-workbench` link.
 
 Click `New repository` and complete as in the picture:
+
 ![rdf4j-nr1](img/rdf4j-nr1.png)
+
 Click `Next` and check if is corresponds to this:
+
 ![rdf4j-nr2](img/rdf4j-nr2.png)
-Click `Create`.  
+
+Click `Create`.
 
 You will do these steps many times:  
 
@@ -423,16 +469,16 @@ Now, Click `Add` in the `Modify` submenu.
 
 Click on the button next to `RDF Data File` in order to select a RDF Data File.
 
-Select the `oeso.owl` file got previously from GitHub repository `ontology-vocabularies`
+Select the `oeso.owl` file downloaded previously from the GitHub repository [`ontology-vocabularies`](https://github.com/OpenSILEX/ontology-vocabularies/releases).
 
-Add it in the context  `<http://www.opensilex.org/vocabulary/oeso>` with base URI and context fields.
-Fill the field `Base URI` with the value `http://www.phenome-fppn.fr/vocabulary/2017`.
+Add it in the context  `<http://www.opensilex.org/vocabulary/oeso>` with base URI and context fields (check the box "use base URI as context identifier").
+Fill the field `Base URI` with a value of the form `<base-url-of-your domain>/vocabularies/oeso`. For example, the development team in Montpellier uses the base URI `http://www.opensilex.org/vocabularies/oeso`. Please use another one if your install your own version of OpenSILEX, for instance `https://www.<your-institution-name>/vocabularies/oeso`.
 
-In the `Data format` field, select `RDF/XML`.
+In the `Data format` field, select `RDF/XML` and then click on `Upload`.
 
-Click `Upload`.
+Repeat this operation with the `oeev.owl` file downloaded previously from the GitHub repository [`ontology-vocabularies`](https://github.com/OpenSILEX/ontology-vocabularies/releases), with the `Base URI` (and context) of the form `<base-url-of-your domain>/vocabularies/oeev`.
 
-Add also a new context for the Ontology Annotation (with the `RDF Data File` `oa.rdf` downloadedable [here](http://www.w3.org/ns/oa.rdf) and with the `Base URI` value `http://www.w3.org/ns/oa`.
+Add also a new context for the Ontology Annotation (with the `RDF Data File` `oa.rdf` downloadable [here](http://www.w3.org/ns/oa.rdf) and with the `Base URI` value `http://www.w3.org/ns/oa`.
 
 ### PostgreSQL database
 
@@ -492,13 +538,12 @@ Exit the SQL editor:
 
 #### Set up the database
 
-Download the dump file to import [here](assets/opensilex_st_dump.sql) (make sure you download it in a folder where you are fully owner - like the `/var/lib/postgresql/` folder - because of PosgreSQL ownership issue when importing data).
+Download the template dump file from this documentation [opensilex_st_dump.sql](assets/opensilex_st_dump.sql) (make sure you download it in a folder where you are fully owner - like the `/var/lib/postgresql/` folder - because of PosgreSQL ownership issue when importing data).
 
 Import data with :
 ```bash
 psql -U opensilex -h 127.0.0.1 <experimental_installation_name> < /var/lib/postgresql/opensilex_st_dump.sql
 ```
- You can find [dump file](assets/opensilex_st_dump.sql).
 
 With specific access rights, you can get a dump from the demonstration version:
 ```bash
@@ -552,7 +597,7 @@ Run netbeans:
 ```
 **Note**<br/>
 Netbeans frequently meets error when he starts. If you have an error please go to the [common error](#problems-with-netbeans) section.
-
+Make sure that you have correctly installed Netbeans and linked it to java (see the [Netbeans and JDK](#netbeans-and-jdk) section above). 
 When Netbeans starts, open the `phis2-ws` project located in the `phis-ws` GitHub project.
 
 If problems are detected in the project: click right on the project name -> `Resolve problems` -> `Resolve`.  
@@ -573,7 +618,7 @@ Specific profile configurations are defined in the `config.properties` file whic
 
 Netbeans users: configuration files are located in `~/OpenSILEX/phis-ws/phis2-ws/src/main/profiles {profile name}`.
 
-Profile could be used with the following command line (`-P` option):
+Profile could be used with the following command line (`-P` option) from a terminal opened at `~/OpenSILEX/phis-ws/phis2-ws` :
 
 ```bash
 mvn install -Ptest
@@ -598,6 +643,9 @@ You need to change the port with the value chosen for Tomcat (in our case 8080):
 mongo.host=127.0.0.1
 mongo.port=27017
 mongo.db=<experimental_installation_name>
+mongo.user=opensilex
+mongo.password=azerty
+mongo.authdb=opensilex
 
 # PostgreSQL configuration
 pg.host=127.0.0.1
@@ -642,6 +690,8 @@ ws.layers.url=http://127.0.0.1/layers
 When all configuration files are correctly set up you can generate the `.war` file: right click on the project's name -> `Build with depedencies`.
 The `.war` file is generated in `<phis-ws git repository>/phis2-ws/target/phis2ws.war`.
 
+Every time you will change source files, such as the configuration file, you will need to generate and deploy once again the `.war` file.
+
 #### Deploy war file
 
 Copy the WAR archive into the Tomcat `webapps` folder (replace `<>` with the right phis-ws git repository and the Tomcat version):
@@ -655,7 +705,7 @@ Your web service is directly deployed. You can check that at http://127.0.0.1:80
 
 On the Tomcat server home page, click on `Manager App` and connect with the Tomcat user.  
 Search `phis2ws` in the list (if it isn't running, click on `Start`) and click on the name `/phis2ws`.  
-You are now on your web service! if it is correctly set up, you have 2 opperationnal links.  
+You are now on your web service! if it is correctly set up, you have 2 operationnal links.  
 
 **Note** </br>
 You can directly go on the web service with the URL http://127.0.0.1:8080/phis2ws
@@ -678,7 +728,7 @@ Otherwise, please go to the [common error](#errors-with-the-web-service) section
 
 #### Folder
 
-The web application deployment is done by Apache2. You have to copy the webapp folder in the Apache root folder (in our case `/var/www/html`).
+The web application deployment is done by Apache2. You have to copy the webapp folder (downloaded from [OpenSILEX/phis-webapp](https://github.com/OpenSILEX/phis-webapp)) in the Apache root folder (in our case `/var/www/html`).
 ```bash
 sudo cp -r <Git folder>/phis-webapp /var/www/html
 ```
@@ -688,7 +738,7 @@ sudo chown -R <username>:www-data /var/www/html/phis-webapp
 sudo chmod 775 -R /var/www/html/phis-webapp
 ```
 **Note**</br>
-`www-data` is the default Apache2 username. But in rare case it can be different. You can check the value of `APACHE_RUN_USER` it in the `/etc/apache2/envars` file to be sure.
+`www-data` is the default Apache2 username. But in rare case it can be different. You can check the value of `APACHE_RUN_USER` it in the `/etc/apache2/envvars` file to be sure.
 
 #### Configuration
 
@@ -777,7 +827,11 @@ If the error persists, your JDK installation may haven't been done correctly. Un
 
 ### Issues with Composer
 
-If you have installed Composer with `apt` from Ubuntu packages, please uninstall Composer (consider deleting the cache and the configuration files in the `~/.cache` and `/etc` folders) and reinstall Composer with [this porcedure](#composer).
+If you have installed Composer with `apt` from Ubuntu packages, please uninstall Composer (consider deleting the cache and the configuration files in the `~/.cache` and `/etc` folders) and reinstall Composer with [this procedure](#composer), or the official one : [getcomposer.org/download/](https://getcomposer.org/download/), using the following *install-dir* and *filename* options :
+
+```
+php composer-setup.php --install-dir=bin --filename=composer
+```
 
 If it doesn't fix the problem, please check the [composer troubleshooting page](https://getcomposer.org/doc/articles/troubleshooting.md).
 
