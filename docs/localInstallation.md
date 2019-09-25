@@ -773,7 +773,7 @@ cd /var/www/html/phis-webapp
 ```
 Run `composer update`:
 ```bash
-sudo composer update
+composer update
 ```
 It takes some time.  
 
